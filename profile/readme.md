@@ -80,3 +80,11 @@ _내 얼굴형에 맞는 헤어스타일을 추천 받고 싶다면?_ <br>
 <p align="center">
   <img src="https://github.com/SeojungH/colab_test/assets/86144019/abca62f6-8fe3-45ba-a141-a85e1b3cc77b">
 </p>
+
+
+## 소스코드 설명
+## how to build
+## how to install
+## how to test
+## sample data 설명
+## 사용한 오픈소스 설명
