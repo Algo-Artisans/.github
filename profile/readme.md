@@ -2,10 +2,14 @@
 
 ## 👥 팀원
 
-| 김지원 | 오예린 | 황서정 | 
-| :---: | :---: | :---: | 
-| <img src="https://avatars.githubusercontent.com/JiwonKim08" alt="profile" width="180" height="180"> | <img src="https://avatars.githubusercontent.com/YelynnOh" alt="profile" width="180" height="180"> | <img src="https://avatars.githubusercontent.com/seojungH" alt="profile" width="180" height="180"> |
-| [JiwonKim08](https://github.com/JiwonKim08) | [YelynnOh](https://github.com/YelynnOh) | [seojungH](https://github.com/seojungH) | 
+<div align=center> 
+
+  | 김지원 | 오예린 | 황서정 | 
+  | :---: | :---: | :---: | 
+  | <img src="https://avatars.githubusercontent.com/JiwonKim08" alt="profile" width="180" height="180"> | <img src="https://avatars.githubusercontent.com/YelynnOh" alt="profile"   width="180" height="180"> | <img src="https://avatars.githubusercontent.com/seojungH" alt="profile" width="180" height="180"> |
+  | [JiwonKim08](https://github.com/JiwonKim08) | [YelynnOh](https://github.com/YelynnOh) | [seojungH](https://github.com/seojungH) | 
+
+</div>
 
 ## ✨ 기술 스택
 
