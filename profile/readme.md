@@ -1,4 +1,4 @@
-<h2 align="center"> 💇‍♀️모락모락 - 맞춤형 헤어스타일 추천 서비스</h2>
+<h2 align="center"> 💇‍♀️모락모락 (毛樂毛樂) - 맞춤형 헤어스타일 추천 서비스</h2>
 
 
 
@@ -6,17 +6,14 @@ _내 얼굴형에 맞는 헤어스타일을 추천 받고 싶다면?_ <br>
 👉 [모락모락 바로 가기✨](https://morak-morak-demo.vercel.app/)
 
 
-### **🪮기능 1** <br>
+### **🪮 합성사진으로 헤어스타일 추천** <br>
 : 어쩌고
 
-### **✒️기능 2** <br> 
+### **✒️ 디자이너 추천** <br> 
 : 저쩌고.
 
-### **👁️‍🗨️기능 3** <br>
+### **👁️‍🗨️ 디자이너 포트폴리오 생성** <br>
 : 쩜쩜쩜
-
-
-
 
 
 
@@ -78,3 +75,8 @@ _내 얼굴형에 맞는 헤어스타일을 추천 받고 싶다면?_ <br>
   <img src="https://img.shields.io/badge/fontawesome-339AF0?style=for-the-badge&logo=fontawesome&logoColor=white">
   <br>
 </div>
+
+
+<p align="center">
+  <img src="https://github.com/SeojungH/colab_test/assets/86144019/abca62f6-8fe3-45ba-a141-a85e1b3cc77b">
+</p>
