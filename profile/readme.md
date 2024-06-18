@@ -60,6 +60,7 @@ _내 얼굴형에 맞는 헤어스타일을 추천 받고 싶다면?_ <br>
 
 ## ❔ How to install, build, test ❔
 - FRONT
+    - 
     - front 레포지토리의 코드를 로컬 환경으로 pull한다.
     - 프로젝트 폴더 가장 상위 폴더에 `.env.local` 파일 생성 후 필요한 환경 변수를 입력한다. 
     -  VScode의 터미널을 열어 `yarn` 명령어로 필요한 의존성을 설치한다. 
@@ -72,9 +73,17 @@ _내 얼굴형에 맞는 헤어스타일을 추천 받고 싶다면?_ <br>
     - 단, 토큰 발급 전이므로(배포주소가 아닌 localhost이므로), 토큰이 필요한 API는 테스트 불가능하다.
 
 - AI
-    -
     - 
-    -
+    - ai 레포지토리의 코드를 로컬 환경으로 pull 한다. 
+    - `.env` 파일을 생성하고 필요한 환경 변수를 입력한다. 
+    - pycharm 에서 터미널을 열고 `pip install -r requirements.txt`를 통해 필요한 패키지를 설치한다.
+    - main2.py 파일을 실행시킨다.
+    - `http://127.0.0.1:5000` 로 접속한다.
+    - ai 서버만 따로 실행시킬시, 사용자의 카카오톡 정보가 넘어가지 않으므로 ai 기능만 이용하고 싶다면 `http://127.0.0.1:5000/api/receivekakaoid` 로 {
+  "token": "토큰내용",
+  "kakao_id": "아이디숫자"
+} api를 post 한 후에 진행한다. 
+
 
 <br>
 cf. 서버간 연결동작(FRONT-BACK-AI)은 localhost에서 불가능합니다.
@@ -318,6 +327,136 @@ cf. 서버간 연결동작(FRONT-BACK-AI)은 localhost에서 불가능합니다.
         getRedirectStrategy().sendRedirect(request, response, newtargetUrl);
     }
      ```
+
+- AI
+    -
+    - 유저 얼굴형 분석 및 결과 전송
+    ```python
+    # 가장 확률이 높게 예측된 얼굴형 (best shape)
+    def predict_face_shape(image_path):
+        img = preprocess_image(image_path)
+        with torch.no_grad():
+            outputs = model(img)
+        _, predicted = torch.max(outputs, 1)
+        predicted_class = class_labels[predicted.item()]
+    return predicted_class
+
+    # 가장 확률이 낮게 예측된 얼굴형 (worst shape)
+    def predict_least_likely_class(image_path):
+        img = preprocess_image(image_path)
+        with torch.no_grad():
+        outputs = model(img)
+        probabilities = torch.softmax(outputs, dim=1)
+        least_likely_class_prob, least_likely_class_idx = torch.min(probabilities, dim=1)
+        least_likely_class_label = class_labels[least_likely_class_idx.item()]
+    return least_likely_class_label
+
+    # 서버측으로 얼굴형 판별 결과 전송
+    def post_json_data(predicted_class, least_likely_class_label, global_token):
+    
+    url = os.getenv('AWS_URL')
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': global_token
+    }
+
+    face = {
+        "faceShapeBest": predicted_class,
+        "faceShapeWorst": least_likely_class_label
+    }
+
+    data = json.dumps(face)
+
+    try:
+        response = requests.post(url, headers=headers, data=data)
+        if response.status_code == 200:
+            print("전송 성공")
+        else:
+            print(" 전송 실패 Status code:", response.status_code)
+            print("오류 내용:", response.text)
+    except Exception as e:
+        print("에러 발생:", e)
+    ```
+
+    - 얼굴형 기반으로 얼굴과 헤어이미지 합성 사진 생성 및 전송
+    ```python
+    def generate_and_upload_synthesized_images(file_path, predicted_class, least_likely_class_label, result_dir, current_datetime, kakao_id):
+
+        # 유저별 카카오톡 아이디로 폴더 만들기
+        s3_results_dir = f"results/{kakao_id}"
+        os.makedirs(result_dir, exist_ok=True)
+
+        generated_images = []
+
+        def generate_image_key(image_name):
+            return f"{s3_results_dir}/{image_name}"
+
+        # 결과 이미지 생성 및 업로드
+        for ref_image_dir in [f'asset/ref/{predicted_class}',   f'asset/ref/{least_likely_class_label}']:
+            num_generated_images = 0
+            for ref_image_name in os.listdir(ref_image_dir):
+                if num_generated_images >= 3:
+                    break
+
+                target_image_path = os.path.join(ref_image_dir, ref_image_name)
+
+                if not ref_image_name.endswith(('_back.npy', '_aligned.png')):
+                    synthesized_image_path = generate_synthesized_image(target_image_path, file_path, result_dir)
+                    generated_image_key = generate_image_key(ref_image_name)
+                    upload_to_s3(s3_bucket_name, generated_image_key, synthesized_image_path, aws_access_key_id,
+                             aws_secret_access_key, region_name)
+                    generated_images.append(f"https://{s3_bucket_name}.s3.amazonaws.com/{generated_image_key}")
+                    num_generated_images += 1
+
+        return generated_images
+
+    # 합성 이미지 생성
+    def generate_synthesized_image(target_image_path, source_image_path, output_dir):
+
+        cmd = f"python image_test.py --target_img_path {target_image_path} --source_img_path {source_image_path} --output_dir {output_dir} --use_gpu True"
+        subprocess.run(cmd, shell=True, check=True)
+
+        synthesized_image_name = "result_" + os.path.basename(target_image_path)
+        synthesized_image_path = os.path.join(output_dir, synthesized_image_name)
+    
+    return synthesized_image_path
+
+
+    @app.route('/predict', methods=['POST'])
+    def predict():
+
+        global global_token
+        global global_kakao_id
+
+        file = request.files['file']
+
+        if not global_token or not global_kakao_id:
+            return jsonify({'error': 'Missing token or kakao_id'}), 400
+
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+
+        local_file_path = os.path.join(current_dir, 'uploads', file.filename)
+        file.save(local_file_path)
+
+        predicted_class = predict_face_shape(local_file_path)
+        least_likely_class_label = predict_least_likely_class(local_file_path)
+
+        current_datetime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        result_dir = os.path.join('results', current_datetime)
+        os.makedirs(result_dir, exist_ok=True)
+
+        generated_images = generate_and_upload_synthesized_images(local_file_path, predicted_class, least_likely_class_label, result_dir, current_datetime, global_kakao_id)
+
+        # 얼굴형 데이터 전송
+        post_json_data(predicted_class, least_likely_class_label, global_token)
+
+        # 결과 화면으로 리다이렉트
+        redirect_url = f"https://morak-morak-demo.vercel.app/user?bestFace={predicted_class}&worstFace={least_likely_class_label}"
+
+    return redirect(redirect_url)
+    ```
+
 
 ## 🔗 기술 블로그 링크
 - 👉[백엔드 작업환경 세팅하기](https://jwkdevelop.tistory.com/131)
