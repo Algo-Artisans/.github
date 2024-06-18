@@ -32,13 +32,25 @@ _내 얼굴형에 맞는 헤어스타일을 추천 받고 싶다면?_ <br>
 
 <div align=center> 
   <br>
-  <img src="https://img.shields.io/badge/react-61DAFB?style=for-the-badge&logo=react&logoColor=black">
+  <h3>FE</h3>
+  <img src="https://img.shields.io/badge/Next.js-eeeeee?style=for-the-badge&logo=Next.js&logoColor=black">
+  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=TypeScript&logoColor=white"/>
+  <img src="https://img.shields.io/badge/TailwindCss-06B6D4?style=for-the-badge&logo=TailwindCss&logoColor=white"/>
+  <img src="https://img.shields.io/badge/ReactQuery-FF4154?style=for-the-badge&logo=ReactQuery&logoColor=white"/>
+  <img alt="Yarn" src="https://img.shields.io/badge/Yarn-2C8EBB?style=for-the-badge&logo=yarn&logoColor=white" />
+  <img alt="Yarn" src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" />
+
+
+  <h3>BE</h3>
   <img src="https://img.shields.io/badge/spring-6DB33F?style=for-the-badge&logo=spring&logoColor=white"> 
+  <img src="https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white">  
+
+  <h3>AI</h3>
   <img src="https://img.shields.io/badge/flask-000000?style=for-the-badge&logo=flask&logoColor=white">
-  <br>
-    <img src="https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white">  
-    <img src="https://img.shields.io/badge/amazonaws-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white">
-  <br>
+
+
+  <h3>공통</h3>
+  <img src="https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonwebservices&logoColor=white">
   <img src="https://img.shields.io/badge/github-181717?style=for-the-badge&logo=github&logoColor=white">
   <img src="https://img.shields.io/badge/git-F05032?style=for-the-badge&logo=git&logoColor=white">
 
@@ -48,14 +60,15 @@ _내 얼굴형에 맞는 헤어스타일을 추천 받고 싶다면?_ <br>
 
 ## ❔ How to install, build, test ❔
 - FRONT
-    -
-    - 
-    -  
+    - front 레포지토리의 코드를 로컬 환경으로 pull한다.
+    - 프로젝트 폴더 가장 상위 폴더에 `.env.local` 파일 생성 후 필요한 환경 변수를 입력한다. 
+    -  VScode의 터미널을 열어 `yarn` 명령어로 필요한 의존성을 설치한다. 
+    - `yarn dev` 명령어로 Next.js 개발 서버를 띄운 후, `http://localhost:3000`을 진입 시 개발 화면을 확인할 수 있다. 
 - BACK
     - 
-    - BACK 레포에서 최신코드를 IntelliJ로 pull한 뒤, application.yml 파일에 설정값을 입력한다.
+    - back 레포지토리에서 최신코드를 IntelliJ로 pull한 뒤, `application.yml` 파일에 설정값을 입력한다.
     - 오른쪽 상단에 Run 버튼을 눌러 localhost 서버를 띄어 터미널에 뜬 주소로 들어간다.
-    - 프론트와 연결되기 전이므로(배포주소가 아닌 localhost이므로), http://localhost:8080/swagger-ui/에서 API 테스트가 가능하다.
+    - 프론트와 연결되기 전이므로(배포주소가 아닌 localhost이므로), `http://localhost:8080/swagger-ui/`에서 API 테스트가 가능하다.
     - 단, 토큰 발급 전이므로(배포주소가 아닌 localhost이므로), 토큰이 필요한 API는 테스트 불가능하다.
 
 - AI
@@ -79,19 +92,91 @@ cf. 서버간 연결동작(FRONT-BACK-AI)은 localhost에서 불가능합니다.
 - 코드 설명은 추석처리 해두었습니다.
 - FRONT
     -
-    - 
- 
-    ```
+    - Next.js의 middleware 활용 코드
+        - 사용자 인증 및 리다이렉트용으로 구성
+    
+    ```typescript
+    import { NextResponse } from 'next/server';
+    import type { NextRequest } from 'next/server';
+
+    export async function middleware(request: NextRequest) {
+    //NOTE : 카카오톡에서 토큰 받으면 그 토큰 쿠키에 저장
+    if (request.nextUrl.pathname === '/auth') {
+    //NOTE : url에서 토큰 부분 분리, 쿠키에 저장
+    const accessToken = request.nextUrl.searchParams.get('accessToken');
+
+    // NOTE : 이미 가입한 사람일 경우 홈 화면으로 이동 아니면 회원가입으로
+    const firstLogin = request.nextUrl.searchParams.get('firstLogin');
+
+    const response =
+      firstLogin === 'no'
+        ? NextResponse.redirect(new URL('/designerList', request.nextUrl))
+        : NextResponse.redirect(new URL('/signup', request.nextUrl));
+
+    if (accessToken) {
+      response.cookies.set('accessToken', accessToken, { path: '/' });
+    } else {
+      // NOTE : 액세스 토큰이 없는 경우 요청을 거부하고 로그인 페이지로 리다이렉트
+        return NextResponse.redirect(new URL('/login', request.nextUrl));
+    }   
+
+        return response;
+        }
+    }
+
+    export const config = {
+        matcher: ['/', '/auth'],
+    };
 
     ```
-    -
-    ```
+    - S3 버킷에 저장되어 있는 '유저별 AI합성 이미지' 객체 직접 가져오기
+        - 우선 아래와 같은 패키지가 필요함
+        ```json
+        "@aws-sdk/client-s3": "3.540.0",
+        "@aws-sdk/credential-provider-node": "^3.554.0",
+        ```
+    ```typescript
+    //useGetS3Image.ts
+    const getS3Image = async (objectKeys: string[]): Promise<S3ImageProps> => {
+    try {
+        const s3Client = new S3Client({
+        region: process.env.NEXT_PUBLIC_S3_REGION,
+        credentials: {
+            accessKeyId: process.env.NEXT_PUBLIC_KEY_ID || '',
+            secretAccessKey: process.env.NEXT_PUBLIC_SECRET_ACCESS_KEY || '',
+        },
+        });
+
+        const images = await Promise.all(
+        objectKeys.map(async (objectKey) => {
+            const command = new GetObjectCommand({
+            Bucket: process.env.NEXT_PUBLIC_S3_BUCKET_NAME,
+            Key: objectKey,
+            });
+            const response = await s3Client.send(command);
+
+            if (response.Body) {
+            const str = await response.Body.transformToByteArray();
+            const blob = new Blob([str], { type: 'image/png' });
+            return URL.createObjectURL(blob);
+            }
+            return ''; // 이미지가 없는 경우 빈 문자열 반환
+        }),
+        );
+
+        // 이미지 URL 배열 반환
+        return { urls: images.filter((url) => url !== '') };
+    } catch (error) {
+        console.error('S3 이미지 가져오기 실패:', error);
+        throw error;
+    }
+    };
     ```
 
 - BACK
     -
     - QueryDSL을 사용해 '헤어디자이너 추천 기능' 구현
-    ``` 
+    ```java
     public List<Portfolio> searchHairNames(List<String> hairNames) {
         QPortfolio portfolio = QPortfolio.portfolio;
         QPortfolioHairStyle qportfolioHairStyle = QPortfolioHairStyle.portfolioHairStyle;
@@ -120,7 +205,7 @@ cf. 서버간 연결동작(FRONT-BACK-AI)은 localhost에서 불가능합니다.
      ```
     
      - '디자이너 포트폴리오 등록 기능' 구현
-     ```
+     ```java
      public PortfolioResDto createPortfolio(HttpServletRequest httpRequest, PortfolioReqDto portfolioReqDto) {
         // 클라이언트 정보를 토큰에서 추출
         User user = jwtTokenProvider.getUserInfoByToken(httpRequest);
@@ -204,7 +289,7 @@ cf. 서버간 연결동작(FRONT-BACK-AI)은 localhost에서 불가능합니다.
      ```
      
      - 카카오 로그인 인증 과정 구현 using Spring Security + 카카오 디벨로퍼
-     ```
+     ```java
      @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
             throws IOException, ServletException {
@@ -236,7 +321,7 @@ cf. 서버간 연결동작(FRONT-BACK-AI)은 localhost에서 불가능합니다.
 
 ## 🔗 기술 블로그 링크
 - 👉[백엔드 작업환경 세팅하기](https://jwkdevelop.tistory.com/131)
-- 👉
+- 👉[프론트엔드 프로젝트 스캐폴딩 과정](https://shingy.tistory.com/56)
 - 👉
 - 👉
 
