@@ -461,8 +461,8 @@ cf. 서버간 연결동작(FRONT-BACK-AI)은 localhost에서 불가능합니다.
 ## 🔗 기술 블로그 링크
 - 👉[백엔드 작업환경 세팅하기](https://jwkdevelop.tistory.com/131)
 - 👉[프론트엔드 프로젝트 스캐폴딩 과정](https://shingy.tistory.com/56)
-- 👉
-- 👉
+- 👉[GPU 이용해서 모델 사용하기](https://velog.io/@hseojung/gcp-gpu-%EC%9D%B8%EC%8A%A4%ED%84%B4%EC%8A%A4-%EC%83%9D%EC%84%B1%ED%95%98%EA%B8%B0)
+
 
 ## 🔗 최종 보고서 링크
 - 👉 [최종 피피티 및 보고서](https://jwkdevelop.tistory.com/133)
